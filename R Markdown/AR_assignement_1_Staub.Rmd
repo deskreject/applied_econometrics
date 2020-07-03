@@ -1,0 +1,101 @@
+---
+title: "AR_assignment_1"
+author: "Alexander Staub"
+date: "July 3, 2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+
+What is the observed mean difference in the outcome variable Y between the presence and absence of the treatment? Show this mean difference using both a t-test as well as a regression specification. Corroborate, for example in Excel, that this observed difference equals the ratio of the covariance between Y and D over the variance of D.
+
+### Answer 1
+
+First Load the data
+```{r}
+library(readxl)
+
+df_raw <- read_excel("C:/R work/applied econometrics/applied_econometrics/Data/Session1data.xlsx", 
+                     sheet = 1)
+
+```
+
+show the mean difference between presence and absence of treatment in the outcome variable
+```{r}
+library(stats)
+#regression specification
+summary(lm(data = df_raw, y ~ D))[[4]]
+#T-test
+t.test(df_raw$y~df_raw$D)
+#ratio covariance to variance
+cov(df_raw$y, y = df_raw$D)/var(df_raw$D)
+
+```
+
+from the output above it is clear that the coefficient on the regression does in fact resemble the covariance of treatment and outcome divided by the variance of the treatment
+
+## Question 2
+
+What is the difference in the outcome variable Y between the presence and absence of the treatment after controlling for observed firm characteristics (X1-X4)?
+i. Using a new regression, corroborate that the regression coefficient on D in the previous regression equals the ratio of the covariance between Y and that part of D that is orthogonal to X1-X4 over the variance of that part of D that is orthogonal to X1-X4.
+ii. What happens to the coefficients on X1-X4?
+iii. What happens to the regression coefficients when regressing Y on D and X1-X4 after making all independent variables orthogonal to each other?
+iv. At the end of the day, which regression specification should we rely on?
+
+### Answer 2
+
+First I want to calculate the new regression specification
+
+```{r}
+#with treatment variable D
+summary(lm(data = df_raw, y ~ x1 + x2 + x3 + x4 + D))
+#without treatment variable D
+summary(lm(data = df_raw, y ~ x1 + x2 + x3 + x4 ))
+```
+
+(i) In order to receive the part of d that is orthogonal to the other regressors, I need to regress the treatment D on the controls x1 - x4 and save the residuals as a new variable
+
+```{r}
+#regress D on the control variables
+df_raw$D_orth <- residuals(lm(D~x1 + x2 + x3 + x4, data = df_raw))
+#calculate the ratio of covariance between y and orthogonal d over the variance of orthogonal D
+cov(df_raw$D_orth, y = df_raw$y)/var(df_raw$D_orth)
+
+```
+as seen above, the regression coefficient of D using the new specification equals the ratio of covariance(y, D orthogonal to X's) and variance(D orthogonal to X's)
+
+(ii) as seen in the output of the regression summary above, the coefficient on x1, x2 and x3 increases, while it decreases on x4. Standard errors on all 4 control variables hardly see any change and thus significance values of the coefficients don't change either
+
+(iii) the process above will be repeated with all the x variables to make them orthogonal to eachother
+```{r}
+#create orthogonal variables
+df_raw$x1_orth <- residuals(lm(x1~D + x2 + x3 + x4, data = df_raw))
+df_raw$x2_orth <- residuals(lm(x2~D + x1 + x3 + x4, data = df_raw))
+df_raw$x3_orth <- residuals(lm(x3~D + x2 + x1 + x4, data = df_raw))
+df_raw$x4_orth <- residuals(lm(x4~D + x2 + x3 + x1, data = df_raw))
+#run regression with orthogonal variables
+summary(lm(data = df_raw, y~x1_orth + x2_orth + x3_orth + x4_orth + D_orth))
+```
+after making each variable orthogonal to the remaining variables in the regression, any correlation among them is partialled out, making a multivariate regression unnecessary. All that changed is that the intercept has increased, making the effect size of the variables lower in the multivariate regression with orthogonal variables compared to non-orthogonal variable regression. 
+
+(iv) It would make more sense to use the first specification (i.e. not including orthogonal variables) rather than the second regression as in the second regression, interpretation of the coefficients is no longer straight forward. I.e. a change in the treatment variable from 0 to 1 gives the change in the outcome variable (keeping control variables constant), while the coefficient in the orthogonal treatment variable controlling for orthogonal control variables does not yield the same interpretation. 
+
+## Question 3
+
+ What is the difference in the outcome variable Y between the presence and absence of the treatment after controlling for observed firm characteristics (X1-X4) as well as industry effects?
+ 
+### Answer 3
+
+
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
