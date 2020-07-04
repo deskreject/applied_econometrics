@@ -90,12 +90,59 @@ after making each variable orthogonal to the remaining variables in the regressi
  
 ### Answer 3
 
+```{r}
+#regression with treatment and industry effects
+summary(lm(data = df_raw, y~ x1 + x2 + x3 + x4 + as.factor(industry) + D))[[4]]
 
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+the outcome variable changes by 0.094 after treatment with industry effects and observed firm characteristics, however remains negative. Including industry effects one can see that hardly any have a significant impact on the outcome variable (apart for industry 6)
+
+## Question 4
+
+Given that the assumption of homoskedasticity is probably not valid and the data are not independent across firms because of industry affiliation, which standard errors should we rely on? The default OLS standard errors (“conventional”), robust standard errors, clustered standard errors, or some other standard errors? Using the regression specification of question 3, determine the significance of the coefficient on D using the standard error that you think is most appropriate and explain why you think it is most appropriate.
+
+### Answer 4
+
+a brief visual investigation when plotting the outcome variable and the x1 variable with and without industry factors shows 2 things. 
+-  1st, that variance increases as x1 increases (heteroskedasticity)
+-  2nd, that variance is differs for each industry cluster
+
+```{r df_raw, echo=FALSE}
+#check for heteroskedasticity
+library(ggplot2)
+library(gridExtra)
+
+g_1 <- ggplot(data = df_raw, aes(y=y, x=x1)) +
+  geom_point() +
+  geom_smooth(method = "lm") + 
+  ggtitle("outcome on x1 without industry factors")
+
+g_2 <- ggplot(data = df_raw, aes(y=y, x=x1, colour=as.factor(industry))) +
+  geom_point(aes(colour=as.factor(industry))) +
+  geom_smooth(method = "lm")+
+  ggtitle("outcome on x1 with industry factors")
+
+grid.arrange(g_1, g_2)
+
+
+```
+
+below, the regression coefficients including robust standard errors and clustered standard errors on the industry level
+
+```{r}
+library(lmtest)
+library(sandwich)
+if (!require(miceadds)) install.packages("miceadds"); library(miceadds)  
+
+#compute the regression specification from question 3 with robust standard errors
+m_1 <- lm(data = df_raw, y~ x1 + x2 + x3 + x4 + as.factor(industry) + D)
+coeftest(m_1, vcov = vcovHC(m_1, type = "HC1"))
+
+#compute with clustered standard errors
+m_2 <- lm.cluster(data = df_raw, y~ x1 + x2 + x3 + x4 + as.factor(industry) + D, cluster = "industry")
+
+summary(m_2)
+```
+
+above results show that standard errors on the treatment variable double when including clustered standard errors vs robust standard errors. The former is the most plausible specification, given the firms industry affiliation related non-independence. 
