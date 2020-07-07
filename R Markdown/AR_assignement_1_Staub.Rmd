@@ -2,7 +2,12 @@
 title: "AR_assignment_1"
 author: "Alexander Staub"
 date: "July 3, 2020"
-output: pdf_document
+output: 
+  html_document:
+    code_folding: "hide"
+    includes:
+      after_body: footer.html
+
 ---
 
 ```{r setup, include=FALSE}
@@ -24,7 +29,8 @@ df_raw <- read_excel("C:/R work/applied econometrics/applied_econometrics/Data/S
 
 ```
 
-show the mean difference between presence and absence of treatment in the outcome variable
+show the mean difference between presence and absence of treatment in the outcome variable using a regression specification and T test as well as by dividing the covariance between outcome and treatment by the variance in the treatment variable:
+
 ```{r}
 library(stats)
 #regression specification
@@ -41,14 +47,18 @@ from the output above it is clear that the coefficient on the regression does in
 ## Question 2
 
 What is the difference in the outcome variable Y between the presence and absence of the treatment after controlling for observed firm characteristics (X1-X4)?
+
 i. Using a new regression, corroborate that the regression coefficient on D in the previous regression equals the ratio of the covariance between Y and that part of D that is orthogonal to X1-X4 over the variance of that part of D that is orthogonal to X1-X4.
+
 ii. What happens to the coefficients on X1-X4?
+
 iii. What happens to the regression coefficients when regressing Y on D and X1-X4 after making all independent variables orthogonal to each other?
+
 iv. At the end of the day, which regression specification should we rely on?
 
 ### Answer 2
 
-First I want to calculate the new regression specification
+First find below the new regression specification as well as the regression of y on only the firm specific characteristics (x1-x4)
 
 ```{r}
 #with treatment variable D
@@ -70,7 +80,8 @@ as seen above, the regression coefficient of D using the new specification equal
 
 (ii) as seen in the output of the regression summary above, the coefficient on x1, x2 and x3 increases, while it decreases on x4. Standard errors on all 4 control variables hardly see any change and thus significance values of the coefficients don't change either
 
-(iii) the process above will be repeated with all the x variables to make them orthogonal to eachother
+(iii) the process above will be repeated with all the x variables to make them orthogonal to eachother (see code for how new variables were constructed)
+
 ```{r}
 #create orthogonal variables
 df_raw$x1_orth <- residuals(lm(x1~D + x2 + x3 + x4, data = df_raw))
@@ -80,7 +91,7 @@ df_raw$x4_orth <- residuals(lm(x4~D + x2 + x3 + x1, data = df_raw))
 #run regression with orthogonal variables
 summary(lm(data = df_raw, y~x1_orth + x2_orth + x3_orth + x4_orth + D_orth))
 ```
-after making each variable orthogonal to the remaining variables in the regression, any correlation among them is partialled out, making a multivariate regression unnecessary. All that changed is that the intercept has increased, making the effect size of the variables lower in the multivariate regression with orthogonal variables compared to non-orthogonal variable regression. 
+after making each variable orthogonal to the remaining variables in the regression, any correlation among them is partialled out, making a multivariate regression unnecessary. All that changed is that the intercept has increased, making the effect size of the variables smaller in the multivariate regression with orthogonal variables compared to non-orthogonal variable regression. 
 
 (iv) It would make more sense to use the first specification (i.e. not including orthogonal variables) rather than the second regression as in the second regression, interpretation of the coefficients is no longer straight forward. I.e. a change in the treatment variable from 0 to 1 gives the change in the outcome variable (keeping control variables constant), while the coefficient in the orthogonal treatment variable controlling for orthogonal control variables does not yield the same interpretation. 
 
@@ -90,13 +101,15 @@ after making each variable orthogonal to the remaining variables in the regressi
  
 ### Answer 3
 
+find below the coefficient output on the regression of y on treatment (D), firm characteristics (x1-x4) as well as industry effects. 
+
 ```{r}
 #regression with treatment and industry effects
 summary(lm(data = df_raw, y~ x1 + x2 + x3 + x4 + as.factor(industry) + D))[[4]]
 
 ```
 
-the outcome variable changes by 0.094 after treatment with industry effects and observed firm characteristics, however remains negative. Including industry effects one can see that hardly any have a significant impact on the outcome variable (apart for industry 6)
+the outcome variable changes by 0.094 after treatment with industry effects and observed firm characteristics held constant (industry 1 as baseline industry), however remains negative given the negative intercept value. Including industry effects one can see that hardly any have a significant impact on the outcome variable (apart for industry 6)
 
 ## Question 4
 
@@ -105,10 +118,11 @@ Given that the assumption of homoskedasticity is probably not valid and the data
 ### Answer 4
 
 a brief visual investigation when plotting the outcome variable and the x1 variable with and without industry factors shows 2 things. 
--  1st, that variance increases as x1 increases (heteroskedasticity)
--  2nd, that variance is differs for each industry cluster
 
-```{r df_raw, echo=FALSE}
+*  1st, that variance increases as x1 increases (heteroskedasticity)
+*  2nd, that variance is differs for each industry cluster
+
+```{r df_raw, echo=FALSE, warning=FALSE}
 #check for heteroskedasticity
 library(ggplot2)
 library(gridExtra)
@@ -128,9 +142,9 @@ grid.arrange(g_1, g_2)
 
 ```
 
-below, the regression coefficients including robust standard errors and clustered standard errors on the industry level
+below, the regression coefficients including robust standard errors (1st) and clustered standard errors on the industry level (2nd)
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 library(lmtest)
 library(sandwich)
 if (!require(miceadds)) install.packages("miceadds"); library(miceadds)  
@@ -145,4 +159,4 @@ m_2 <- lm.cluster(data = df_raw, y~ x1 + x2 + x3 + x4 + as.factor(industry) + D,
 summary(m_2)
 ```
 
-above results show that standard errors on the treatment variable double when including clustered standard errors vs robust standard errors. The former is the most plausible specification, given the firms industry affiliation related non-independence. dadsfasdf. 
+above results show that standard errors on the treatment variable double when including clustered standard errors vs robust standard errors. The former is the most plausible specification, given the firms industry affiliation related non-independence. 
