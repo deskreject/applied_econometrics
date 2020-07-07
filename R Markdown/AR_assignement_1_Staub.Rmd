@@ -58,13 +58,11 @@ iv. At the end of the day, which regression specification should we rely on?
 
 ### Answer 2
 
-First find below the new regression specification as well as the regression of y on only the firm specific characteristics (x1-x4)
+First find below the new regression specification 
 
 ```{r}
 #with treatment variable D
 summary(lm(data = df_raw, y ~ x1 + x2 + x3 + x4 + D))
-#without treatment variable D
-summary(lm(data = df_raw, y ~ x1 + x2 + x3 + x4 ))
 ```
 
 (i) In order to receive the part of d that is orthogonal to the other regressors, I need to regress the treatment D on the controls x1 - x4 and save the residuals as a new variable
@@ -78,7 +76,13 @@ cov(df_raw$D_orth, y = df_raw$y)/var(df_raw$D_orth)
 ```
 as seen above, the regression coefficient of D using the new specification equals the ratio of covariance(y, D orthogonal to X's) and variance(D orthogonal to X's)
 
-(ii) as seen in the output of the regression summary above, the coefficient on x1, x2 and x3 increases, while it decreases on x4. Standard errors on all 4 control variables hardly see any change and thus significance values of the coefficients don't change either
+(ii) as seen in the output of the regression summary below, the coefficient on D remains the same for orthogonal D as when including unaltered D in the regression, whereas the coefficients on x1-x4 resemble the coefficients of x1-x4 if you would only regress y on x1-x4 without including the treatment variable. This is to be expected as none of the firm characteristics are now no longer correlated with the included treatment, hence the coefficients are not affected by including or excluding the D-orthogonal variable. 
+
+```{r}
+#regress y on x1-x4 and orthogonal D
+summary(lm(data = df_raw, y ~ x1 + x2 + x3 + x4 + D_orth))
+```
+
 
 (iii) the process above will be repeated with all the x variables to make them orthogonal to eachother (see code for how new variables were constructed)
 
@@ -159,4 +163,4 @@ m_2 <- lm.cluster(data = df_raw, y~ x1 + x2 + x3 + x4 + as.factor(industry) + D,
 summary(m_2)
 ```
 
-above results show that standard errors on the treatment variable double when including clustered standard errors vs robust standard errors. The former is the most plausible specification, given the firms industry affiliation related non-independence. 
+above results show that standard errors on the treatment variable double when including clustered standard errors vs robust standard errors. The former is the most plausible specification, given the firms industry affiliation related non-independence. Given the small number of clusters, standard errors may be biased which can be corrected for by adjusting for numbers of clusters

@@ -488,7 +488,7 @@ cov(df_raw$y, y = df_raw$D)/var(df_raw$D)</code></pre>
 </ol>
 <div id="answer-2" class="section level3">
 <h3>Answer 2</h3>
-<p>First find below the new regression specification as well as the regression of y on only the firm specific characteristics (x1-x4)</p>
+<p>First find below the new regression specification</p>
 <pre class="r"><code>#with treatment variable D
 summary(lm(data = df_raw, y ~ x1 + x2 + x3 + x4 + D))</code></pre>
 <pre><code>## 
@@ -513,29 +513,6 @@ summary(lm(data = df_raw, y ~ x1 + x2 + x3 + x4 + D))</code></pre>
 ## Residual standard error: 0.2594 on 224 degrees of freedom
 ## Multiple R-squared:  0.2491, Adjusted R-squared:  0.2323 
 ## F-statistic: 14.86 on 5 and 224 DF,  p-value: 1.371e-12</code></pre>
-<pre class="r"><code>#without treatment variable D
-summary(lm(data = df_raw, y ~ x1 + x2 + x3 + x4 ))</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = y ~ x1 + x2 + x3 + x4, data = df_raw)
-## 
-## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -0.74989 -0.14034 -0.01333  0.11084  0.67145 
-## 
-## Coefficients:
-##              Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)  0.012496   0.122155   0.102 0.918613    
-## x1           0.082399   0.019622   4.199 3.86e-05 ***
-## x2          -0.009183   0.020764  -0.442 0.658712    
-## x3           0.065871   0.017099   3.852 0.000153 ***
-## x4           0.109926   0.018241   6.026 6.79e-09 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 0.2609 on 225 degrees of freedom
-## Multiple R-squared:  0.2369, Adjusted R-squared:  0.2233 
-## F-statistic: 17.46 on 4 and 225 DF,  p-value: 1.715e-12</code></pre>
 <ol style="list-style-type: lower-roman">
 <li>In order to receive the part of d that is orthogonal to the other regressors, I need to regress the treatment D on the controls x1 - x4 and save the residuals as a new variable</li>
 </ol>
@@ -546,8 +523,34 @@ cov(df_raw$D_orth, y = df_raw$y)/var(df_raw$D_orth)</code></pre>
 <pre><code>## [1] 0.06967092</code></pre>
 <p>as seen above, the regression coefficient of D using the new specification equals the ratio of covariance(y, D orthogonal to X’s) and variance(D orthogonal to X’s)</p>
 <ol start="2" style="list-style-type: lower-roman">
-<li><p>as seen in the output of the regression summary above, the coefficient on x1, x2 and x3 increases, while it decreases on x4. Standard errors on all 4 control variables hardly see any change and thus significance values of the coefficients don’t change either</p></li>
-<li><p>the process above will be repeated with all the x variables to make them orthogonal to eachother (see code for how new variables were constructed)</p></li>
+<li>as seen in the output of the regression summary below, the coefficient on D remains the same for orthogonal D as when including unaltered D in the regression, whereas the coefficients on x1-x4 resemble the coefficients of x1-x4 if you would only regress y on x1-x4 without including the treatment variable. This is to be expected as none of the firm characteristics are now no longer correlated with the included treatment, hence the coefficients are not affected by including or excluding the D-orthogonal variable.</li>
+</ol>
+<pre class="r"><code>#regress y on x1-x4 and orthogonal D
+summary(lm(data = df_raw, y ~ x1 + x2 + x3 + x4 + D_orth))</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = y ~ x1 + x2 + x3 + x4 + D_orth, data = df_raw)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.73439 -0.12810 -0.01877  0.12033  0.68669 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  0.012496   0.121446   0.103  0.91814    
+## x1           0.082399   0.019508   4.224 3.49e-05 ***
+## x2          -0.009183   0.020643  -0.445  0.65685    
+## x3           0.065871   0.016999   3.875  0.00014 ***
+## x4           0.109926   0.018135   6.061 5.66e-09 ***
+## D_orth       0.069671   0.036538   1.907  0.05782 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.2594 on 224 degrees of freedom
+## Multiple R-squared:  0.2491, Adjusted R-squared:  0.2323 
+## F-statistic: 14.86 on 5 and 224 DF,  p-value: 1.371e-12</code></pre>
+<ol start="3" style="list-style-type: lower-roman">
+<li>the process above will be repeated with all the x variables to make them orthogonal to eachother (see code for how new variables were constructed)</li>
 </ol>
 <pre class="r"><code>#create orthogonal variables
 df_raw$x1_orth &lt;- residuals(lm(x1~D + x2 + x3 + x4, data = df_raw))
@@ -679,7 +682,7 @@ summary(m_2)</code></pre>
 ## as.factor(industry)10  0.096914381 0.03793282  2.55489518 1.062198e-02
 ## as.factor(industry)11  0.081504602 0.08554458  0.95277343 3.407049e-01
 ## D                      0.094283549 0.06021783  1.56570826 1.174169e-01</code></pre>
-<p>above results show that standard errors on the treatment variable double when including clustered standard errors vs robust standard errors. The former is the most plausible specification, given the firms industry affiliation related non-independence.</p>
+<p>above results show that standard errors on the treatment variable double when including clustered standard errors vs robust standard errors. The former is the most plausible specification, given the firms industry affiliation related non-independence. Given the small number of clusters, standard errors may be biased which can be corrected for by adjusting for numbers of clusters</p>
 </div>
 </div>
 
