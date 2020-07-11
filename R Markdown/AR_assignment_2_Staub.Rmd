@@ -80,13 +80,6 @@ matched_calip_df <- matchit(D ~ x1 + x2 + x3 + x4, method ="nearest", caliper = 
 
 based on the mean difference and qq Max values after the different matching procedures, optimal matching was chosen as the best method for reducing mean difference (check appendix item A to inspect the summary tables for matching procedure).
 
-below find a plot of the changes in propensity score distribution before and after using optimal matching procedure
-
-```{r}
-plot(matched_opt_df, type = "hist")
-```
-
-
 i) below, find the covariate distribution in presence and absence of treatment with the optimally matched data
 
 ```{r}
@@ -95,6 +88,37 @@ df_opt_match <- match.data(matched_opt_df)
 
 #run the summary of the matched data
 psych::describeBy(df_opt_match[,2:5], group = df_opt_match$D)
+```
+
+after matching, the distribution has improved markedly across all covariates comparing absence and presence of treatment, apart for covariate x3. 
+
+ii) find below a t-test to compare the difference in the outcome variable with the matched data
+
+```{r}
+#t test with matched data
+t.test(df_opt_match$y ~ df_opt_match$D, conf.level = 0.95)
+#unmatched
+t.test(df_raw$y ~ df_raw$D, conf.level = 0.95)
+```
+
+according to the t-test above, the difference in mean outcomes with the matched data is not significant at the 0.95 confidence level, while there is a signficant difference at the 0.95 level for the unmatched data. 
+
+### Quesiton 3
+Use propensity scores to create a sample that is on “common support” and estimate the treatment effect using a regression with covariates.
+
+## answer 2
+
+run a matching procedure that establishes common support. Herein, nearest neighbour greedy, 1:1 without replacement is implemented
+
+```{r}
+matched_nn_cs_df <- matchit(D ~ x1 + x2 + x3 + x4, data = df_raw, CommonSupport = T, )
+```
+
+
+below find plots of the changes in propensity score distribution before and after using optimal matching procedure to demonstrate common support
+
+```{r}
+plot(matched_opt_df, type = "hist")
 ```
 
 
