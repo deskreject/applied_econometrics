@@ -1,0 +1,120 @@
+---
+title: "AR_assignment_2_Staub"
+author: "Alexander Staub"
+date: "July 9, 2020"
+output: 
+  html_document:
+    includes:
+      after_body: footer.html
+---
+
+### Question 1 
+How are the observed firm characteristics distributed across the presence and absence of the treatment? What does this suggest?
+
+## Answer 1
+
+first, create a table of summary statistics with the psych package of the firm characteristic variables x1 to x4. Check whether at least one variable's mean is significantly different in treatment group compared to control
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+library(psych)
+library(tidyverse)
+library(readxl)
+
+#load data
+df_raw <- read_excel("C:/R work/applied econometrics/applied_econometrics/Data/Session1data.xlsx", 
+                     sheet = 1)
+
+#compare summary statistics
+psych::describeBy(df_raw[,c(2:5)], group = df_raw$D)
+
+#do t_test for mean differences
+t.test(df_raw$x4~df_raw$D)
+```
+
+calculating the standardized difference to determine which variables show a significant imbalance between control  and treatment as well as whether at least one of the variables is creating imbalance with an omnibus Xi-squared test (see Hansen and Bowers, 2008)
+
+```{r}
+library(RItools)
+#indices of covariance imbalances
+treated<-(df_raw$D==1)
+cov<-df_raw[,2:5]
+std.diff<-apply(cov,2,function(x) 100*(mean(x[treated])- mean(x[!treated]))/(sqrt(0.5*(var(x[treated])+var(x[!treated])))))
+abs(std.diff)
+#check whether at least one of the variables is causing statistical imbalance with a chi-squared test
+xBalance(D ~ x1 + x2 + x3 + x4, data = df_raw, report = c("chisquare.test"))
+```
+
+
+As one can see in the ouput above, means differ among the firm characteristic variables, however not dramatically. looking at the standardized differences, no absolute scores are higher than 25% (set as suspect limit by Stuart and Rubin, 2008) and the chi squared test does not imply significance at the 0.95 significance level
+
+## Question 2
+
+Use propensity scores to match the presence of the treatment (‘treatment group’) to the absence of the treatment (‘control group’) based on the observed firm characteristics (Note: make sure that the maximum difference in the probability of treatment between the treatment and matched control is less than or equal to 1 percentage point)
+
+i. How are the observed firm characteristics distributed across the presence and absence of the treatment for this matched sample?
+
+ii. What is the difference in the outcome variable Y between the presence and absence of the treatment for the propensity-matched sample?
+
+### Answer 2
+
+First calculate the propensity score for the two groups with a logistic regression using the firm characteristic variables as matching variables. As I am not able to find any R documentation on setting a minimum distance in propensity score for matching individuals, I will run 3 matching procedures and use the matching procedure which provides the best support. All are estimated without replacement and 1:1
+ 1. Nearest Neighbour greedy
+ 2. Optimal
+ 3. Nearest Neighbour Caliper, setting caliper at 0.25 as this seems to be the standard (Rosenbaum and Robin, 1985)
+
+```{r warning=FALSE, message=FALSE}
+library(MatchIt)
+library(stats)
+
+#matching with nearest neighbour, greedy, no replacement
+matched_nn_df <- matchit(D~ x1 + x2 + x3 + x4, method = "nearest", data = df_raw)
+
+#matching with nearest neighbour, no replacement
+matched_opt_df <- matchit(D ~ x1 + x2 + x3 + x4, method = "optimal", data = df_raw)
+
+#matching with nearest neighbour caliper, no replacement
+matched_calip_df <- matchit(D ~ x1 + x2 + x3 + x4, method ="nearest", caliper = 0.25, data = df_raw)
+
+
+```
+
+based on the mean difference and qq Max values after the different matching procedures, optimal matching was chosen as the best method for reducing mean difference (check appendix item A to inspect the summary tables for matching procedure).
+
+below find a plot of the changes in propensity score distribution before and after using optimal matching procedure
+
+```{r}
+plot(matched_opt_df, type = "hist")
+```
+
+
+i) below, find the covariate distribution in presence and absence of treatment with the optimally matched data
+
+```{r}
+#get the matched data
+df_opt_match <- match.data(matched_opt_df)
+
+#run the summary of the matched data
+psych::describeBy(df_opt_match[,2:5], group = df_opt_match$D)
+```
+
+
+
+## Appendix
+
+Appendix A: Summaries of the matching procdeures in question 2
+
+nearest neighbour greedy
+```{r}
+summary(matched_nn_df, standardize = T)
+```
+
+optimal matching
+```{r}
+summary(matched_opt_df, standardize = T)
+```
+
+nearest neighbour caliper
+```{r}
+summary(matched_calip_df, standardize = T)
+```
+
