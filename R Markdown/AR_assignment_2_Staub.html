@@ -370,12 +370,11 @@ summary {
 </div>
 
 
-<div id="question-1" class="section level3">
-<h3>Question 1</h3>
+<div id="question-1" class="section level2">
+<h2>Question 1</h2>
 <p>How are the observed firm characteristics distributed across the presence and absence of the treatment? What does this suggest?</p>
-</div>
-<div id="answer-1" class="section level2">
-<h2>Answer 1</h2>
+<div id="answer-1" class="section level3">
+<h3>Answer 1</h3>
 <p>first, create a table of summary statistics with the psych package of the firm characteristic variables x1 to x4. Check whether at least one variable’s mean is significantly different in treatment group compared to control</p>
 <pre><code>## 
 ##  Descriptive statistics by group 
@@ -409,14 +408,8 @@ summary {
 ## mean in group 0 mean in group 1 
 ##        7.181834        7.471920</code></pre>
 <p>calculating the standardized difference to determine which variables show a significant imbalance between control and treatment as well as whether at least one of the variables is creating imbalance with an omnibus Xi-squared test (see Hansen and Bowers, 2008)</p>
-<pre class="r"><code>library(RItools)</code></pre>
-<pre><code>## Loading required package: SparseM</code></pre>
-<pre><code>## 
-## Attaching package: 'SparseM'</code></pre>
-<pre><code>## The following object is masked from 'package:base':
-## 
-##     backsolve</code></pre>
-<pre class="r"><code>#indices of covariance imbalances
+<pre class="r"><code>library(RItools)
+#indices of covariance imbalances
 treated&lt;-(df_raw$D==1)
 cov&lt;-df_raw[,2:5]
 std.diff&lt;-apply(cov,2,function(x) 100*(mean(x[treated])- mean(x[!treated]))/(sqrt(0.5*(var(x[treated])+var(x[!treated])))))
@@ -431,6 +424,7 @@ xBalance(D ~ x1 + x2 + x3 + x4, data = df_raw, report = c(&quot;chisquare.test&q
 ## ---
 ## Signif. codes:  0 '***' 0.001 '** ' 0.01 '*  ' 0.05 '.  ' 0.1 '   ' 1</code></pre>
 <p>As one can see in the ouput above, means differ among the firm characteristic variables, however not dramatically. looking at the standardized differences, no absolute scores are higher than 25% (set as suspect limit by Stuart and Rubin, 2008) and the chi squared test does not imply significance at the 0.95 significance level</p>
+</div>
 </div>
 <div id="question-2" class="section level2">
 <h2>Question 2</h2>
@@ -454,7 +448,7 @@ matched_opt_df &lt;- matchit(D ~ x1 + x2 + x3 + x4, method = &quot;optimal&quot;
 #matching with nearest neighbour caliper, no replacement
 matched_calip_df &lt;- matchit(D ~ x1 + x2 + x3 + x4, method =&quot;nearest&quot;, caliper = 0.25, data = df_raw)</code></pre>
 <p>based on the mean difference and qq Max values after the different matching procedures, optimal matching was chosen as the best method for reducing mean difference (check appendix item A to inspect the summary tables for matching procedure).</p>
-<p>below find a plot of the changes in propensity score distribution before and after using optimal matching procedure</p>
+<p>below find plots of the changes in propensity score distribution before and after using optimal matching procedure</p>
 <pre class="r"><code>plot(matched_opt_df, type = &quot;hist&quot;)</code></pre>
 <p><img src="data:image/png;base64,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" width="672" /></p>
 <ol style="list-style-type: lower-roman">
@@ -480,7 +474,342 @@ psych::describeBy(df_opt_match[,2:5], group = df_opt_match$D)</code></pre>
 ## x2    2 79  1.36 0.94   1.11    1.23 0.56  0.00  4.24  4.24  1.30     1.45 0.11
 ## x3    3 79 -0.09 1.03  -0.33   -0.08 1.18 -2.03  1.43  3.46  0.05    -1.26 0.12
 ## x4    4 79  7.47 1.28   7.68    7.47 0.89  4.28 10.17  5.90 -0.24    -0.13 0.14</code></pre>
+<p>after matching, the distribution has improved markedly across all covariates comparing absence and presence of treatment, apart for covariate x3.</p>
+<ol start="2" style="list-style-type: lower-roman">
+<li>find below a t-test to compare the difference in the outcome variable with the matched data</li>
+</ol>
+<pre class="r"><code>#t test with matched data
+t.test(df_opt_match$y ~ df_opt_match$D, conf.level = 0.95)</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  df_opt_match$y by df_opt_match$D
+## t = -1.0721, df = 155.93, p-value = 0.2853
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -0.13452071  0.03986742
+## sample estimates:
+## mean in group 0 mean in group 1 
+##       0.7979747       0.8453013</code></pre>
+<pre class="r"><code>#unmatched
+t.test(df_raw$y ~ df_raw$D, conf.level = 0.95)</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  df_raw$y by df_raw$D
+## t = -2.0047, df = 168.71, p-value = 0.04659
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -0.158916785 -0.001222296
+## sample estimates:
+## mean in group 0 mean in group 1 
+##       0.7652318       0.8453013</code></pre>
+<p>according to the t-test above, the difference in mean outcomes with the matched data is not significant at the 0.95 confidence level, while there is a signficant difference at the 0.95 level for the unmatched data.</p>
 </div>
+</div>
+<div id="quesiton-3" class="section level2">
+<h2>Quesiton 3</h2>
+<p>Use propensity scores to create a sample that is on “common support” and estimate the treatment effect using a regression with covariates.</p>
+<div id="answer-3" class="section level3">
+<h3>answer 3</h3>
+<p>run a matching procedure that establishes common support. Herein, nearest neighbour greedy, 1:1 without replacement, discarding observations that fall outside the area of common support is implemented</p>
+<pre class="r"><code>#estimate the model around common support
+matched_nn_cs_df &lt;- matchit(D ~ x1 + x2 + x3 + x4, data = df_raw, discard=&quot;both&quot;, type=&quot;nearest&quot;, m.order=&quot;largest&quot;)
+
+#save the matched data
+df_nn_cs_match &lt;- match.data(matched_nn_cs_df)</code></pre>
+<p>restricting the matching procedures to create a sample that is on common support leads to the discarding of two observations in the control group</p>
+<p>The treatment effect is estimated below</p>
+<pre class="r"><code>summary(lm(y~D+x1+x2+x3+x4, data = df_nn_cs_match))</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = y ~ D + x1 + x2 + x3 + x4, data = df_nn_cs_match)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.67801 -0.12313 -0.02976  0.11440  0.60106 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  0.03545    0.14526   0.244  0.80753    
+## D            0.06898    0.03917   1.761  0.08031 .  
+## x1           0.07928    0.02644   2.999  0.00318 ** 
+## x2          -0.01762    0.02422  -0.727  0.46813    
+## x3           0.05338    0.01931   2.765  0.00642 ** 
+## x4           0.10424    0.02132   4.890 2.59e-06 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.2422 on 148 degrees of freedom
+## Multiple R-squared:  0.2131, Adjusted R-squared:  0.1865 
+## F-statistic: 8.014 on 5 and 148 DF,  p-value: 1.035e-06</code></pre>
+<p>estimating the treatment effect with the matched sample leads to an insignificant treatment effect</p>
+</div>
+</div>
+<div id="question-4" class="section level2">
+<h2>Question 4</h2>
+<p>Use propensity scores to weight observations and estimate the average treatment effect (ATE) and the treatment on the treated (TOT).</p>
+<div id="answer-4" class="section level3">
+<h3>answer 4</h3>
+<p>find below the average treatment effect on the treated using propensity score weighting</p>
+<pre class="r"><code>if (!require(survey)) install.packages(&quot;survey&quot;); library(survey)  
+
+#trying weightit package
+if (!require(WeightIt)) install.packages(&quot;WeightIt&quot;); library(WeightIt)
+
+W.out &lt;- weightit(D ~ x1 + x2 + x3 + x4,
+        data = df_raw, estimand = &quot;ATT&quot;, method = &quot;ps&quot;)
+
+#check the summary
+summary(W.out)</code></pre>
+<pre><code>##                  Summary of weights
+## 
+## - Weight ranges:
+## 
+##            Min                                  Max
+## treated 1.0000                            || 1.0000
+## control 0.1434 |---------------------------| 1.0809
+## 
+## - Units with 5 greatest weights by group:
+##                                            
+##               1      2      3      4      5
+##  treated      1      1      1      1      1
+##             203    202    135    127     66
+##  control 0.9061 0.9325 0.9496 0.9594 1.0809
+## 
+## - Weight statistics:
+## 
+##         Coef of Var   MAD Entropy # Zeros
+## treated       0.000 0.000   0.000       0
+## control       0.348 0.272  -0.592       0
+## overall       0.396 0.357  -0.295       0
+## 
+## - Effective Sample Sizes:
+## 
+##            Control Treated
+## Unweighted 151.000      79
+## Weighted   134.795      79</code></pre>
+<pre class="r"><code>#get the weights
+weights &lt;- svydesign(ids = ~1, weights = W.out$weights, data = df_raw)
+
+#run weighted regression
+model_w_att &lt;- svyglm(y ~ D + x1 + x2 + x3 + x4, design = weights)
+summary(model_w_att)</code></pre>
+<pre><code>## 
+## Call:
+## svyglm(formula = y ~ D + x1 + x2 + x3 + x4, design = weights)
+## 
+## Survey design:
+## svydesign(ids = ~1, weights = W.out$weights, data = df_raw)
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.002343   0.131370  -0.018 0.985789    
+## D            0.068633   0.033580   2.044 0.042135 *  
+## x1           0.091145   0.030025   3.036 0.002684 ** 
+## x2          -0.005532   0.016458  -0.336 0.737071    
+## x3           0.065599   0.018075   3.629 0.000352 ***
+## x4           0.108209   0.019591   5.523 9.19e-08 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 0.05946896)
+## 
+## Number of Fisher Scoring iterations: 2</code></pre>
+<p>using the weighting procedure, the treatement effect on the treated is significant at the 0.95 significance level</p>
+<p>below the weighting procedure for the average treatment effect on the treated</p>
+<pre class="r"><code>#estimate the propensity scores
+ps_ate &lt;- glm(D ~ x1 + x2 + x3 + x4, data = df_raw, family = &quot;binomial&quot;)
+#attach ps scores to the dataset
+df_raw$psvalues &lt;- predict(ps_ate, type = &quot;response&quot;)
+#extract the weights
+df_raw$w_ate &lt;- ifelse(df_raw$D == 1, 1/df_raw$psvalues, 1/(1-df_raw$psvalues))
+#calculate the model
+model_w_ate &lt;- lm(y ~ D + x1 + x2 + x3 + x4, data = df_raw, weights = (w_ate))
+summary(model_w_ate)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = y ~ D + x1 + x2 + x3 + x4, data = df_raw, weights = (w_ate))
+## 
+## Weighted Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.96638 -0.19015 -0.02381  0.17382  1.16330 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 0.0768505  0.1142647   0.673 0.501917    
+## D           0.0745941  0.0334123   2.233 0.026569 *  
+## x1          0.0928121  0.0202039   4.594 7.26e-06 ***
+## x2          0.0003638  0.0191035   0.019 0.984824    
+## x3          0.0625232  0.0164037   3.812 0.000179 ***
+## x4          0.0960117  0.0166828   5.755 2.83e-08 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.3586 on 224 degrees of freedom
+## Multiple R-squared:  0.2387, Adjusted R-squared:  0.2217 
+## F-statistic: 14.05 on 5 and 224 DF,  p-value: 5.988e-12</code></pre>
+<p>The ATE using propensity score weights is also significant at the 0.9 5significance level</p>
+<p>In summary, using matching leads to a lower adjusted R-sqaured as well as an insignificant treatment effect (at least at 0.95 level) as well as a lower adjusted R-squared</p>
+</div>
+</div>
+<div id="question-5" class="section level2">
+<h2>Question 5</h2>
+<p>Use entropy balancing to estimate the treatment effect of D on the outcome Y?</p>
+<ul>
+<li><ol style="list-style-type: lower-roman">
+<li>Use as balance constraints the first moment (mean).</li>
+</ol></li>
+<li><p>5.i.1. How are the observed firm characteristics distributed across the presence and absence of the treatment for this matched sample?</p></li>
+<li><p>5.i.2. What is the difference in the outcome variable Y between the presence and absence of the treatment for the propensity-matched sample?</p></li>
+<li><ol start="2" style="list-style-type: lower-roman">
+<li>Use as balance constraints the first and second moment (mean and variance).</li>
+</ol></li>
+<li><p>5.ii.1. How are the observed firm characteristics distributed across the presence and absence of the treatment for this matched sample</p></li>
+<li><p>5.ii.2. What is the difference in the outcome variable Y between the presence and absence of the treatment for the propensity-matched sample?</p></li>
+</ul>
+<div id="answer-5" class="section level3">
+<h3>answer 5</h3>
+<p>5.i.1 run the entropy balancing and check the balance of the observed firm characteristics</p>
+<pre class="r"><code>if (!require(ebal)) install.packages(&quot;ebal&quot;); library(ebal)
+library(cobalt)
+#run the entropy balancing on the first moment
+W.out.ebal.1 &lt;- weightit(D ~ x1 + x2 + x3 + x4,
+        data = df_raw, estimand = &quot;ATT&quot;, method = &quot;ebal&quot;, moments = 1)
+
+#check the balance
+bal.tab(W.out.ebal.1, m.threshold = 0.05, disp.v.ratio = T)</code></pre>
+<pre><code>## Call
+##  weightit(formula = D ~ x1 + x2 + x3 + x4, data = df_raw, method = &quot;ebal&quot;, estimand = &quot;ATT&quot;, moments = 1)
+## 
+## Balance Measures
+##       Type Diff.Adj     M.Threshold V.Ratio.Adj
+## x1 Contin.  -0.0078 Balanced, &lt;0.05      0.6710
+## x2 Contin.   0.0003 Balanced, &lt;0.05      0.8058
+## x3 Contin.   0.0005 Balanced, &lt;0.05      0.9754
+## x4 Contin.   0.0028 Balanced, &lt;0.05      1.2532
+## 
+## Balance tally for mean differences
+##                     count
+## Balanced, &lt;0.05         4
+## Not Balanced, &gt;0.05     0
+## 
+## Variable with the greatest mean difference
+##  Variable Diff.Adj     M.Threshold
+##        x1  -0.0078 Balanced, &lt;0.05
+## 
+## Effective sample sizes
+##            Control Treated
+## Unadjusted  151.00      79
+## Adjusted    132.18      79</code></pre>
+<p>one can see that the entropy balancing has yielded very good balance across the board</p>
+<p>5.i.2 estimate the model with the reweighted data</p>
+<pre class="r"><code>#get the weights
+weights.ebal.1 &lt;- svydesign(ids = ~1, weights = W.out.ebal.1$weights, data = df_raw)
+
+#run weighted regression
+model_w_ebal_1 &lt;- svyglm(y ~ D + x1 + x2 + x3 + x4, design = weights.ebal.1)
+summary(model_w_ebal_1)</code></pre>
+<pre><code>## 
+## Call:
+## svyglm(formula = y ~ D + x1 + x2 + x3 + x4, design = weights.ebal.1)
+## 
+## Survey design:
+## svydesign(ids = ~1, weights = W.out.ebal.1$weights, data = df_raw)
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.0005917  0.1320828  -0.004 0.996430    
+## D            0.0683834  0.0335160   2.040 0.042491 *  
+## x1           0.0880804  0.0305846   2.880 0.004364 ** 
+## x2          -0.0036523  0.0163980  -0.223 0.823953    
+## x3           0.0673504  0.0180280   3.736 0.000237 ***
+## x4           0.1076164  0.0196420   5.479 1.15e-07 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 0.05966721)
+## 
+## Number of Fisher Scoring iterations: 2</code></pre>
+<p>using the entropy balancing method fixed on 1st moment, the difference in outcome between treatment and non-treatment ist 0.07 at the 0.95 significance level</p>
+<p>5.i.2 estimate the weights for entropy balancing across 1st and 2nd moment</p>
+<pre class="r"><code>#run the entropy balancing on the first moment
+W.out.ebal.2 &lt;- weightit(D ~ x1 + x2 + x3 + x4,
+        data = df_raw, estimand = &quot;ATT&quot;, method = &quot;ebal&quot;, moments = 2)
+
+#check the balance
+bal.tab(W.out.ebal.2, m.threshold = 0.05, disp.v.ratio = T)</code></pre>
+<pre><code>## Call
+##  weightit(formula = D ~ x1 + x2 + x3 + x4, data = df_raw, method = &quot;ebal&quot;, estimand = &quot;ATT&quot;, moments = 2)
+## 
+## Balance Measures
+##       Type Diff.Adj     M.Threshold V.Ratio.Adj
+## x1 Contin.  -0.0078 Balanced, &lt;0.05      0.6710
+## x2 Contin.   0.0003 Balanced, &lt;0.05      0.8058
+## x3 Contin.   0.0005 Balanced, &lt;0.05      0.9754
+## x4 Contin.   0.0028 Balanced, &lt;0.05      1.2532
+## 
+## Balance tally for mean differences
+##                     count
+## Balanced, &lt;0.05         4
+## Not Balanced, &gt;0.05     0
+## 
+## Variable with the greatest mean difference
+##  Variable Diff.Adj     M.Threshold
+##        x1  -0.0078 Balanced, &lt;0.05
+## 
+## Effective sample sizes
+##            Control Treated
+## Unadjusted  151.00      79
+## Adjusted    132.18      79</code></pre>
+<p>as in the prior example, the entropy balancing yields good balancing</p>
+<p>5.ii.2 estimate the model with the reweighted data</p>
+<pre class="r"><code>#get the weights
+weights.ebal.2 &lt;- svydesign(ids = ~1, weights = W.out.ebal.2$weights, data = df_raw)
+
+#run weighted regression
+model_w_ebal_2 &lt;- svyglm(y ~ D + x1 + x2 + x3 + x4, design = weights.ebal.2)
+summary(model_w_ebal_2)</code></pre>
+<pre><code>## 
+## Call:
+## svyglm(formula = y ~ D + x1 + x2 + x3 + x4, design = weights.ebal.2)
+## 
+## Survey design:
+## svydesign(ids = ~1, weights = W.out.ebal.2$weights, data = df_raw)
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.0005917  0.1320828  -0.004 0.996430    
+## D            0.0683834  0.0335160   2.040 0.042491 *  
+## x1           0.0880804  0.0305846   2.880 0.004364 ** 
+## x2          -0.0036523  0.0163980  -0.223 0.823953    
+## x3           0.0673504  0.0180280   3.736 0.000237 ***
+## x4           0.1076164  0.0196420   5.479 1.15e-07 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 0.05966721)
+## 
+## Number of Fisher Scoring iterations: 2</code></pre>
+<p>the results for using the 1st and 2nd moment yield the same results, however it may be the case that the entropy balancing moment selection in the package I am using is not doing what I expect it to do. However, I am not able to find any reliable documentation on an R package for entropy balancing to solve the problem set as set out in this assignment.</p>
+</div>
+</div>
+<div id="question-6" class="section level2">
+<h2>Question 6</h2>
+<p>Provide an overview table with all of the above treatment effects, as well as the treatment effect of the “regular regression” that was part of the Session 1 assignment.</p>
+</div>
+<div id="answer-6" class="section level2">
+<h2>answer 6</h2>
+<ul>
+<li>Treatment effect A2 assignement 1: 0.0697 at sig level 0.9</li>
+<li>Treatment effect A3 assignement 1: (w. industry): 0.0943 at sig level 0.9</li>
+<li><p>Treatment effect A4 assignement 1: (w. clustered SE): 0.0943 insignificant</p></li>
+<li>Treatment effect A3 assignemnet 2: (w. matching and common support): 0.0690 at sig level 0.9</li>
+<li>ATT effect A4 assignment 2: (w. ps reweighting): 0.0686 at sig level 0.95</li>
+<li>ATE effect A4 assignment 2: (w. ps reweighting): 0.0746 at sig level 0.95</li>
+<li>Treatment effect A5 assignment 2: (entropy balancing 1st moment): 0.0684 at sig level 0.95</li>
+<li><p>Treatment effect A5 assignemnet 2: (entropy balancing 2nd moment): 0.0684 at sig level 0.95</p></li>
+</ul>
 </div>
 <div id="appendix" class="section level2">
 <h2>Appendix</h2>
@@ -607,25 +936,25 @@ psych::describeBy(df_opt_match[,2:5], group = df_opt_match$D)</code></pre>
 ## 
 ## Summary of balance for matched data:
 ##          Means Treated Means Control SD Control Std. Mean Diff. eCDF Med
-## distance        0.3589        0.3551     0.0750          0.0469   0.0195
-## x1             -0.1580       -0.0842     0.9291         -0.1057   0.0260
-## x2              1.3700        1.3167     0.9088          0.0568   0.0325
-## x3             -0.1089       -0.0002     1.0279         -0.1057   0.0519
-## x4              7.4250        7.3921     1.0380          0.0258   0.0649
+## distance        0.3589        0.3538     0.0751          0.0636   0.0260
+## x1             -0.1580       -0.0746     0.9792         -0.1195   0.0390
+## x2              1.3700        1.2942     0.9244          0.0808   0.0390
+## x3             -0.1089        0.0174     1.0302         -0.1228   0.0519
+## x4              7.4250        7.3575     0.9904          0.0529   0.0779
 ##          eCDF Mean eCDF Max
-## distance    0.0267   0.0909
-## x1          0.0256   0.0779
-## x2          0.0345   0.0909
-## x3          0.0649   0.1688
-## x4          0.0930   0.2987
+## distance    0.0326   0.1169
+## x1          0.0325   0.0649
+## x2          0.0364   0.1169
+## x3          0.0552   0.1299
+## x4          0.0944   0.2727
 ## 
 ## Percent Balance Improvement:
 ##          Std. Mean Diff. eCDF Med eCDF Mean eCDF Max
-## distance         87.2848  81.3945   75.8467  59.3989
-## x1               67.0206  46.1609   47.2228  28.2214
-## x2              -32.5633  16.5291   34.1388  30.6615
-## x3             -398.8159 -63.5062  -59.3807 -46.4718
-## x4               88.6571  26.8545   19.6154  14.0567
+## distance         82.7645  75.1926   70.5132  47.7986
+## x1               62.7264  19.2413   32.9895  40.1845
+## x2              -88.5664  -0.1651   30.4137  10.8505
+## x3             -479.2472 -63.5062  -35.4736 -12.6706
+## x4               76.7418  12.2255   18.4494  21.5301
 ## 
 ## Sample sizes:
 ##           Control Treated
@@ -633,6 +962,56 @@ psych::describeBy(df_opt_match[,2:5], group = df_opt_match$D)</code></pre>
 ## Matched        77      77
 ## Unmatched      74       2
 ## Discarded       0       0</code></pre>
+<p>Appendix B: Summary of nearest neighbour matching, discarding elements outside of common support</p>
+<pre class="r"><code>summary(matched_nn_cs_df)</code></pre>
+<pre><code>## 
+## Call:
+## matchit(formula = D ~ x1 + x2 + x3 + x4, data = df_raw, discard = &quot;both&quot;, 
+##     type = &quot;nearest&quot;, m.order = &quot;largest&quot;)
+## 
+## Summary of balance for all data:
+##          Means Treated Means Control SD Control Mean Diff eQQ Med eQQ Mean
+## distance        0.3630        0.3332     0.0787    0.0298  0.0311   0.0311
+## x1             -0.1734        0.0505     1.0628   -0.2239  0.0525   0.2339
+## x2              1.3611        1.4013     1.0097   -0.0402  0.1828   0.1984
+## x3             -0.0943       -0.0725     1.0140   -0.0218  0.1884   0.1572
+## x4              7.4719        7.1818     1.1466    0.2901  0.3967   0.4011
+##          eQQ Max
+## distance  0.0530
+## x1        1.7006
+## x2        0.6917
+## x3        0.3953
+## x4        0.7560
+## 
+## 
+## Summary of balance for matched data:
+##          Means Treated Means Control SD Control Mean Diff eQQ Med eQQ Mean
+## distance        0.3587        0.3560     0.0748    0.0026  0.0022   0.0035
+## x1             -0.1560       -0.1319     0.8971   -0.0241  0.0611   0.1212
+## x2              1.3562        1.2540     0.9404    0.1021  0.1828   0.1849
+## x3             -0.0908        0.0329     1.0066   -0.1236  0.2131   0.2024
+## x4              7.4131        7.3171     1.0283    0.0960  0.4057   0.3748
+##          eQQ Max
+## distance  0.0164
+## x1        0.9650
+## x2        1.0059
+## x3        0.6407
+## x4        1.0195
+## 
+## Percent Balance Improvement:
+##          Mean Diff.  eQQ Med eQQ Mean  eQQ Max
+## distance    91.1634  92.7716  88.7790  69.0527
+## x1          89.2470 -16.3959  48.1904  43.2577
+## x2        -153.9086   0.0000   6.8188 -45.4169
+## x3        -467.0441 -13.1125 -28.7561 -62.0924
+## x4          66.8951  -2.2726   6.5507 -34.8570
+## 
+## Sample sizes:
+##           Control Treated
+## All           151      79
+## Matched        77      77
+## Unmatched      72       0
+## Discarded       2       2</code></pre>
 </div>
 
 <!DOCTYPE html>

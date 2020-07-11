@@ -8,10 +8,10 @@ output:
       after_body: footer.html
 ---
 
-### Question 1 
+## Question 1 
 How are the observed firm characteristics distributed across the presence and absence of the treatment? What does this suggest?
 
-## Answer 1
+### Answer 1
 
 first, create a table of summary statistics with the psych package of the firm characteristic variables x1 to x4. Check whether at least one variable's mean is significantly different in treatment group compared to control
 
@@ -33,7 +33,7 @@ t.test(df_raw$x4~df_raw$D)
 
 calculating the standardized difference to determine which variables show a significant imbalance between control  and treatment as well as whether at least one of the variables is creating imbalance with an omnibus Xi-squared test (see Hansen and Bowers, 2008)
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 library(RItools)
 #indices of covariance imbalances
 treated<-(df_raw$D==1)
@@ -80,6 +80,12 @@ matched_calip_df <- matchit(D ~ x1 + x2 + x3 + x4, method ="nearest", caliper = 
 
 based on the mean difference and qq Max values after the different matching procedures, optimal matching was chosen as the best method for reducing mean difference (check appendix item A to inspect the summary tables for matching procedure).
 
+below find plots of the changes in propensity score distribution before and after using optimal matching procedure
+
+```{r}
+plot(matched_opt_df, type = "hist")
+```
+
 i) below, find the covariate distribution in presence and absence of treatment with the optimally matched data
 
 ```{r}
@@ -103,23 +109,158 @@ t.test(df_raw$y ~ df_raw$D, conf.level = 0.95)
 
 according to the t-test above, the difference in mean outcomes with the matched data is not significant at the 0.95 confidence level, while there is a signficant difference at the 0.95 level for the unmatched data. 
 
-### Quesiton 3
+## Quesiton 3
 Use propensity scores to create a sample that is on “common support” and estimate the treatment effect using a regression with covariates.
 
-## answer 2
+### answer 3
 
-run a matching procedure that establishes common support. Herein, nearest neighbour greedy, 1:1 without replacement is implemented
-
-```{r}
-matched_nn_cs_df <- matchit(D ~ x1 + x2 + x3 + x4, data = df_raw, CommonSupport = T, )
-```
-
-
-below find plots of the changes in propensity score distribution before and after using optimal matching procedure to demonstrate common support
+run a matching procedure that establishes common support. Herein, nearest neighbour greedy, 1:1 without replacement, discarding observations that fall outside the area of common support is implemented
 
 ```{r}
-plot(matched_opt_df, type = "hist")
+#estimate the model around common support
+matched_nn_cs_df <- matchit(D ~ x1 + x2 + x3 + x4, data = df_raw, discard="both", type="nearest", m.order="largest")
+
+#save the matched data
+df_nn_cs_match <- match.data(matched_nn_cs_df)
 ```
+
+restricting the matching procedures to create a sample that is on common support leads to the discarding of two observations in the control group
+
+The treatment effect is estimated below
+
+```{r}
+summary(lm(y~D+x1+x2+x3+x4, data = df_nn_cs_match))
+```
+estimating the treatment effect with the matched sample leads to an insignificant treatment effect
+
+## Question 4
+
+Use propensity scores to weight observations and estimate the average treatment effect (ATE) and the treatment on the treated (TOT).
+
+### answer 4
+
+find below the average treatment effect on the treated using propensity score weighting
+```{r warning=FALSE, message=FALSE}
+if (!require(survey)) install.packages("survey"); library(survey)  
+
+#trying weightit package
+if (!require(WeightIt)) install.packages("WeightIt"); library(WeightIt)
+
+W.out <- weightit(D ~ x1 + x2 + x3 + x4,
+        data = df_raw, estimand = "ATT", method = "ps")
+
+#check the summary
+summary(W.out)
+#get the weights
+weights <- svydesign(ids = ~1, weights = W.out$weights, data = df_raw)
+
+#run weighted regression
+model_w_att <- svyglm(y ~ D + x1 + x2 + x3 + x4, design = weights)
+summary(model_w_att)
+
+```
+
+using the weighting procedure, the treatement effect on the treated is significant at the 0.95 significance level
+
+below the weighting procedure for the average treatment effect on the treated
+```{r}
+#estimate the propensity scores
+ps_ate <- glm(D ~ x1 + x2 + x3 + x4, data = df_raw, family = "binomial")
+#attach ps scores to the dataset
+df_raw$psvalues <- predict(ps_ate, type = "response")
+#extract the weights
+df_raw$w_ate <- ifelse(df_raw$D == 1, 1/df_raw$psvalues, 1/(1-df_raw$psvalues))
+#calculate the model
+model_w_ate <- lm(y ~ D + x1 + x2 + x3 + x4, data = df_raw, weights = (w_ate))
+summary(model_w_ate)
+```
+The ATE using propensity score weights is also significant at the 0.9 5significance level
+
+In summary, using matching leads to a lower adjusted R-sqaured as well as an insignificant treatment effect (at least at 0.95 level) as well as a lower adjusted R-squared
+
+## Question 5
+Use entropy balancing to estimate the treatment effect of D on the outcome Y?
+
+*  i. Use as balance constraints the first moment (mean).
+
+*  5.i.1. How are the observed firm characteristics distributed across the presence and absence of the treatment for this matched sample?
+
+*  5.i.2. What is the difference in the outcome variable Y between the presence and absence of the treatment for the propensity-matched sample?
+
+*  ii. Use as balance constraints the first and second moment (mean and variance).
+
+*  5.ii.1. How are the observed firm characteristics distributed across the presence and absence of the treatment for this matched sample
+
+*  5.ii.2. What is the difference in the outcome variable Y between the presence and absence of the treatment for the propensity-matched sample?
+
+
+### answer 5
+
+5.i.1 run the entropy balancing and check the balance of the observed firm characteristics
+```{r warning=FALSE, message=FALSE}
+if (!require(ebal)) install.packages("ebal"); library(ebal)
+library(cobalt)
+#run the entropy balancing on the first moment
+W.out.ebal.1 <- weightit(D ~ x1 + x2 + x3 + x4,
+        data = df_raw, estimand = "ATT", method = "ebal", moments = 1)
+
+#check the balance
+bal.tab(W.out.ebal.1, m.threshold = 0.05, disp.v.ratio = T)
+
+```
+one can see that the entropy balancing has yielded very good balance across the board
+
+5.i.2 estimate the model with the reweighted data
+```{r}
+#get the weights
+weights.ebal.1 <- svydesign(ids = ~1, weights = W.out.ebal.1$weights, data = df_raw)
+
+#run weighted regression
+model_w_ebal_1 <- svyglm(y ~ D + x1 + x2 + x3 + x4, design = weights.ebal.1)
+summary(model_w_ebal_1)
+```
+using the entropy balancing method fixed on 1st moment, the difference in outcome between treatment and non-treatment ist 0.07 at the 0.95 significance level
+
+
+5.i.2 estimate the weights for entropy balancing across 1st and 2nd moment
+
+```{r}
+#run the entropy balancing on the first moment
+W.out.ebal.2 <- weightit(D ~ x1 + x2 + x3 + x4,
+        data = df_raw, estimand = "ATT", method = "ebal", moments = 2)
+
+#check the balance
+bal.tab(W.out.ebal.2, m.threshold = 0.05, disp.v.ratio = T)
+```
+as in the prior example, the entropy balancing yields good balancing
+
+5.ii.2 estimate the model with the reweighted data
+```{r}
+#get the weights
+weights.ebal.2 <- svydesign(ids = ~1, weights = W.out.ebal.2$weights, data = df_raw)
+
+#run weighted regression
+model_w_ebal_2 <- svyglm(y ~ D + x1 + x2 + x3 + x4, design = weights.ebal.2)
+summary(model_w_ebal_2)
+```
+the results for using the 1st and 2nd moment yield the same results, however it may be the case that the entropy balancing moment selection in the package I am using is not doing what I expect it to do. However, I am not able to find any reliable documentation on an R package for entropy balancing to solve the problem set as set out in this assignment. 
+
+## Question 6
+Provide an overview table with all of the above treatment effects, as well as the treatment effect of the “regular regression” that was part of the Session 1 assignment.
+
+## answer 6
+
+*  Treatment effect A2 assignement 1: 0.0697 at sig level 0.9
+*  Treatment effect A3 assignement 1: (w. industry): 0.0943 at sig level 0.9
+*  Treatment effect A4 assignement 1: (w. clustered SE): 0.0943 insignificant
+
+*  Treatment effect A3 assignemnet 2: (w. matching and common support): 0.0690 at sig level 0.9
+*  ATT effect A4 assignment 2: (w. ps reweighting): 0.0686 at sig level 0.95
+*  ATE effect A4 assignment 2: (w. ps reweighting): 0.0746 at sig level 0.95
+*  Treatment effect A5 assignment 2: (entropy balancing 1st moment): 0.0684 at sig level 0.95
+*  Treatment effect A5 assignemnet 2: (entropy balancing 2nd moment): 0.0684 at sig level 0.95
+
+
 
 
 
@@ -140,5 +281,11 @@ summary(matched_opt_df, standardize = T)
 nearest neighbour caliper
 ```{r}
 summary(matched_calip_df, standardize = T)
+```
+
+Appendix B: Summary of nearest neighbour matching, discarding elements outside of common support
+
+```{r}
+summary(matched_nn_cs_df)
 ```
 
