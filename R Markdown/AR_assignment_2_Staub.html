@@ -190,6 +190,66 @@ window.buildTabsets = function(tocID) {
 };
 
 </script>
+<script>
+window.initializeCodeFolding = function(show) {
+
+  // handlers for show-all and hide all
+  $("#rmd-show-all-code").click(function() {
+    $('div.r-code-collapse').each(function() {
+      $(this).collapse('show');
+    });
+  });
+  $("#rmd-hide-all-code").click(function() {
+    $('div.r-code-collapse').each(function() {
+      $(this).collapse('hide');
+    });
+  });
+
+  // index for unique code element ids
+  var currentIndex = 1;
+
+  // select all R code blocks
+  var rCodeBlocks = $('pre.r, pre.python, pre.bash, pre.sql, pre.cpp, pre.stan, pre.julia');
+  rCodeBlocks.each(function() {
+
+    // create a collapsable div to wrap the code in
+    var div = $('<div class="collapse r-code-collapse"></div>');
+    show = (show || $(this).hasClass('fold-show')) && !$(this).hasClass('fold-hide');
+    if (show) div.addClass('in');
+    var id = 'rcode-643E0F36' + currentIndex++;
+    div.attr('id', id);
+    $(this).before(div);
+    $(this).detach().appendTo(div);
+
+    // add a show code button right above
+    var showCodeText = $('<span>' + (show ? 'Hide' : 'Code') + '</span>');
+    var showCodeButton = $('<button type="button" class="btn btn-default btn-xs code-folding-btn pull-right"></button>');
+    showCodeButton.append(showCodeText);
+    showCodeButton
+        .attr('data-toggle', 'collapse')
+        .attr('data-target', '#' + id)
+        .attr('aria-expanded', show)
+        .attr('aria-controls', id);
+
+    var buttonRow = $('<div class="row"></div>');
+    var buttonCol = $('<div class="col-md-12"></div>');
+
+    buttonCol.append(showCodeButton);
+    buttonRow.append(buttonCol);
+
+    div.before(buttonRow);
+
+    // update state of button on show/hide
+    div.on('hidden.bs.collapse', function () {
+      showCodeText.text('Code');
+    });
+    div.on('show.bs.collapse', function () {
+      showCodeText.text('Hide');
+    });
+  });
+
+}
+</script>
 <style type="text/css">.hljs-literal {
 color: #990073;
 }
@@ -345,6 +405,9 @@ summary {
 </style>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
 
 
 
@@ -360,6 +423,14 @@ summary {
 
 
 <div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
 
 
 
@@ -396,18 +467,9 @@ summary {
 ## x2    2 79  1.36 0.94   1.11    1.23 0.56  0.00  4.24  4.24  1.30     1.45 0.11
 ## x3    3 79 -0.09 1.03  -0.33   -0.08 1.18 -2.03  1.43  3.46  0.05    -1.26 0.12
 ## x4    4 79  7.47 1.28   7.68    7.47 0.89  4.28 10.17  5.90 -0.24    -0.13 0.14</code></pre>
-<pre><code>## 
-##  Welch Two Sample t-test
-## 
-## data:  df_raw$x4 by df_raw$D
-## t = -1.6944, df = 144.44, p-value = 0.09234
-## alternative hypothesis: true difference in means is not equal to 0
-## 95 percent confidence interval:
-##  -0.62846399  0.04829235
-## sample estimates:
-## mean in group 0 mean in group 1 
-##        7.181834        7.471920</code></pre>
-<p>calculating the standardized difference to determine which variables show a significant imbalance between control and treatment as well as whether at least one of the variables is creating imbalance with an omnibus Xi-squared test (see Hansen and Bowers, 2008)</p>
+<ul>
+<li>calculate the standardized difference to determine which variables show a significant imbalance between control and treatment as well as whether at least one of the variables is creating imbalance with an omnibus Xi-squared test (see Hansen and Bowers, 2008)</li>
+</ul>
 <pre class="r"><code>library(RItools)
 #indices of covariance imbalances
 treated&lt;-(df_raw$D==1)
@@ -423,7 +485,7 @@ xBalance(D ~ x1 + x2 + x3 + x4, data = df_raw, report = c(&quot;chisquare.test&q
 ## unstrat      6.49  4   0.166
 ## ---
 ## Signif. codes:  0 '***' 0.001 '** ' 0.01 '*  ' 0.05 '.  ' 0.1 '   ' 1</code></pre>
-<p>As one can see in the ouput above, means differ among the firm characteristic variables, however not dramatically. looking at the standardized differences, no absolute scores are higher than 25% (set as suspect limit by Stuart and Rubin, 2008) and the chi squared test does not imply significance at the 0.95 significance level</p>
+<p>As one can see in the ouput above, means differ among the firm characteristic variables, however not dramatically. looking at the standardized differences, no absolute scores are higher than 25% (set as suspect limit by Stuart and Rubin, 2008) and the chi squared test does not imply significance at the 0.95 significance level. THis implies that there is some issue in terms of covariate difference between treatment and control group, but it may not severely impact inferences that can be made</p>
 </div>
 </div>
 <div id="question-2" class="section level2">
@@ -435,7 +497,7 @@ xBalance(D ~ x1 + x2 + x3 + x4, data = df_raw, report = c(&quot;chisquare.test&q
 </ol>
 <div id="answer-2" class="section level3">
 <h3>Answer 2</h3>
-<p>First calculate the propensity score for the two groups with a logistic regression using the firm characteristic variables as matching variables. As I am not able to find any R documentation on setting a minimum distance in propensity score for matching individuals, I will run 3 matching procedures and use the matching procedure which provides the best support. All are estimated without replacement and 1:1 1. Nearest Neighbour greedy 2. Optimal 3. Nearest Neighbour Caliper, setting caliper at 0.25 as this seems to be the standard (Rosenbaum and Robin, 1985)</p>
+<p>First calculate the propensity score for the two groups with a logistic regression using the firm characteristic variables as matching variables. As I am not able to find any R documentation on setting a minimum distance in propensity score for matching individuals, I will run 3 matching procedures and use the matching procedure which provides the best support. All are estimated without replacement and 1:1 * 1. Nearest Neighbour greedy * 2. Optimal * 3. Nearest Neighbour Caliper, setting caliper at 0.25 as this seems to be the standard (Rosenbaum and Robin, 1985)</p>
 <pre class="r"><code>library(MatchIt)
 library(stats)
 
@@ -543,7 +605,7 @@ df_nn_cs_match &lt;- match.data(matched_nn_cs_df)</code></pre>
 ## Residual standard error: 0.2422 on 148 degrees of freedom
 ## Multiple R-squared:  0.2131, Adjusted R-squared:  0.1865 
 ## F-statistic: 8.014 on 5 and 148 DF,  p-value: 1.035e-06</code></pre>
-<p>estimating the treatment effect with the matched sample leads to an insignificant treatment effect</p>
+<p>estimating the treatment effect with the matched sample leads to an insignificant treatment effect (at the 0.95 significance level)</p>
 </div>
 </div>
 <div id="question-4" class="section level2">
@@ -649,7 +711,7 @@ summary(model_w_ate)</code></pre>
 ## Residual standard error: 0.3586 on 224 degrees of freedom
 ## Multiple R-squared:  0.2387, Adjusted R-squared:  0.2217 
 ## F-statistic: 14.05 on 5 and 224 DF,  p-value: 5.988e-12</code></pre>
-<p>The ATE using propensity score weights is also significant at the 0.9 5significance level</p>
+<p>The ATE using propensity score weights is also significant at the 0.95 significance level</p>
 <p>In summary, using matching leads to a lower adjusted R-sqaured as well as an insignificant treatment effect (at least at 0.95 level) as well as a lower adjusted R-squared</p>
 </div>
 </div>
@@ -702,7 +764,7 @@ bal.tab(W.out.ebal.1, m.threshold = 0.05, disp.v.ratio = T)</code></pre>
 ##            Control Treated
 ## Unadjusted  151.00      79
 ## Adjusted    132.18      79</code></pre>
-<p>one can see that the entropy balancing has yielded very good balance across the board</p>
+<p>one can see that the entropy balancing has yielded very good balance for the covariates across the board</p>
 <p>5.i.2 estimate the model with the reweighted data</p>
 <pre class="r"><code>#get the weights
 weights.ebal.1 &lt;- svydesign(ids = ~1, weights = W.out.ebal.1$weights, data = df_raw)
@@ -936,25 +998,25 @@ summary(model_w_ebal_2)</code></pre>
 ## 
 ## Summary of balance for matched data:
 ##          Means Treated Means Control SD Control Std. Mean Diff. eCDF Med
-## distance        0.3589        0.3538     0.0751          0.0636   0.0260
-## x1             -0.1580       -0.0746     0.9792         -0.1195   0.0390
-## x2              1.3700        1.2942     0.9244          0.0808   0.0390
-## x3             -0.1089        0.0174     1.0302         -0.1228   0.0519
-## x4              7.4250        7.3575     0.9904          0.0529   0.0779
+## distance        0.3589        0.3563     0.0747          0.0317   0.0260
+## x1             -0.1580       -0.1543     0.8350         -0.0053   0.0260
+## x2              1.3700        1.2331     0.9525          0.1458   0.0390
+## x3             -0.1089        0.0328     1.0297         -0.1378   0.0519
+## x4              7.4250        7.2875     1.0195          0.1078   0.0909
 ##          eCDF Mean eCDF Max
-## distance    0.0326   0.1169
-## x1          0.0325   0.0649
-## x2          0.0364   0.1169
-## x3          0.0552   0.1299
-## x4          0.0944   0.2727
+## distance    0.0284   0.0909
+## x1          0.0341   0.0909
+## x2          0.0409   0.1688
+## x3          0.0647   0.1688
+## x4          0.0998   0.2987
 ## 
 ## Percent Balance Improvement:
 ##          Std. Mean Diff. eCDF Med eCDF Mean eCDF Max
-## distance         82.7645  75.1926   70.5132  47.7986
-## x1               62.7264  19.2413   32.9895  40.1845
-## x2              -88.5664  -0.1651   30.4137  10.8505
-## x3             -479.2472 -63.5062  -35.4736 -12.6706
-## x4               76.7418  12.2255   18.4494  21.5301
+## distance         91.4189  75.1926   74.3228  59.3989
+## x1               98.3471  46.1609   29.5858  16.2583
+## x2             -240.3114  -0.1651   21.7252 -28.7715
+## x3             -550.1509 -63.5062  -58.8404 -46.4718
+## x4               52.6026  -2.4036   13.7852  14.0567
 ## 
 ## Sample sizes:
 ##           Control Treated
@@ -1478,6 +1540,11 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->

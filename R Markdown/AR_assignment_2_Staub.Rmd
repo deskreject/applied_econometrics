@@ -4,6 +4,7 @@ author: "Alexander Staub"
 date: "July 9, 2020"
 output: 
   html_document:
+    code_folding: "hide"
     includes:
       after_body: footer.html
 ---
@@ -27,11 +28,9 @@ df_raw <- read_excel("C:/R work/applied econometrics/applied_econometrics/Data/S
 #compare summary statistics
 psych::describeBy(df_raw[,c(2:5)], group = df_raw$D)
 
-#do t_test for mean differences
-t.test(df_raw$x4~df_raw$D)
 ```
 
-calculating the standardized difference to determine which variables show a significant imbalance between control  and treatment as well as whether at least one of the variables is creating imbalance with an omnibus Xi-squared test (see Hansen and Bowers, 2008)
+*  calculate the standardized difference to determine which variables show a significant imbalance between control  and treatment as well as whether at least one of the variables is creating imbalance with an omnibus Xi-squared test (see Hansen and Bowers, 2008)
 
 ```{r warning=FALSE, message=FALSE}
 library(RItools)
@@ -45,7 +44,7 @@ xBalance(D ~ x1 + x2 + x3 + x4, data = df_raw, report = c("chisquare.test"))
 ```
 
 
-As one can see in the ouput above, means differ among the firm characteristic variables, however not dramatically. looking at the standardized differences, no absolute scores are higher than 25% (set as suspect limit by Stuart and Rubin, 2008) and the chi squared test does not imply significance at the 0.95 significance level
+As one can see in the ouput above, means differ among the firm characteristic variables, however not dramatically. looking at the standardized differences, no absolute scores are higher than 25% (set as suspect limit by Stuart and Rubin, 2008) and the chi squared test does not imply significance at the 0.95 significance level. THis implies that there is some issue in terms of covariate difference between treatment and control group, but it may not severely impact inferences that can be made
 
 ## Question 2
 
@@ -58,9 +57,9 @@ ii. What is the difference in the outcome variable Y between the presence and ab
 ### Answer 2
 
 First calculate the propensity score for the two groups with a logistic regression using the firm characteristic variables as matching variables. As I am not able to find any R documentation on setting a minimum distance in propensity score for matching individuals, I will run 3 matching procedures and use the matching procedure which provides the best support. All are estimated without replacement and 1:1
- 1. Nearest Neighbour greedy
- 2. Optimal
- 3. Nearest Neighbour Caliper, setting caliper at 0.25 as this seems to be the standard (Rosenbaum and Robin, 1985)
+*  1. Nearest Neighbour greedy
+*  2. Optimal
+*  3. Nearest Neighbour Caliper, setting caliper at 0.25 as this seems to be the standard (Rosenbaum and Robin, 1985)
 
 ```{r warning=FALSE, message=FALSE}
 library(MatchIt)
@@ -131,7 +130,7 @@ The treatment effect is estimated below
 ```{r}
 summary(lm(y~D+x1+x2+x3+x4, data = df_nn_cs_match))
 ```
-estimating the treatment effect with the matched sample leads to an insignificant treatment effect
+estimating the treatment effect with the matched sample leads to an insignificant treatment effect (at the 0.95 significance level)
 
 ## Question 4
 
@@ -174,7 +173,7 @@ df_raw$w_ate <- ifelse(df_raw$D == 1, 1/df_raw$psvalues, 1/(1-df_raw$psvalues))
 model_w_ate <- lm(y ~ D + x1 + x2 + x3 + x4, data = df_raw, weights = (w_ate))
 summary(model_w_ate)
 ```
-The ATE using propensity score weights is also significant at the 0.9 5significance level
+The ATE using propensity score weights is also significant at the 0.95 significance level
 
 In summary, using matching leads to a lower adjusted R-sqaured as well as an insignificant treatment effect (at least at 0.95 level) as well as a lower adjusted R-squared
 
@@ -208,7 +207,7 @@ W.out.ebal.1 <- weightit(D ~ x1 + x2 + x3 + x4,
 bal.tab(W.out.ebal.1, m.threshold = 0.05, disp.v.ratio = T)
 
 ```
-one can see that the entropy balancing has yielded very good balance across the board
+one can see that the entropy balancing has yielded very good balance for the covariates across the board
 
 5.i.2 estimate the model with the reweighted data
 ```{r}
