@@ -1,0 +1,42 @@
+---
+title: "Applied Econometrics assignment 4"
+author: "Alexander Staub"
+date: "July 25, 2020"
+output: 
+  html_document:
+    code_folding: "hide"
+    includes:
+      after_body: footer.html
+---
+## Question 3
+Find a published paper in your field of interest that uses an Instrumental Variables approach. Evaluate the quality of the instrument(s) used, as well as the substantiation by the author(s).
+
+### Answer 3
+
+For this assignment I will analyze the instrumental variable estimation strategy by Aizer and Doyle in the article ["Juvenile Incarceration, Human Capital, and Future Crime: Evidence from Randomly Assigned Judges"](https://academic.oup.com/qje/article-abstract/130/2/759/2330376 "Juvenile Incarceration, Human Capital, and Future Crime: Evidence from Randomly Assigned Judges"), published in The Quarterly Journal of Economics in 2015. 
+
+Herein, the effect of juvenile incarceration on the later acquisition of human capital (in the form of high school completition rate and adult recidivism) is investigated, using data from the Chicago justice system. Judge assignment which vary in their sentencing length and are randomly assigned, is used as an instrumental variable. The analysis finds that juvenile incarceration has a significant negative (positive) effect on later highschool completion (adult recidivism). Furthermore, the effect was found to be especially pronounced on individuals incarcerated when observable characteristics suggested a low likelihood of incarceration as well as for juveniles incarcerated at a critical age for high school completion (15-16). 
+
+As aforementioned, the random assignment of judges to cases is exploited, by using the judge's propensity to sentence a juvenlie to detention as an instrument. The first stage regresses the treatment on each individual's assigned judge's likelihood of incarcerating, based on their prior record, including controls on community x weapons-offense x year. 
+
+#### Analysis of the instrumental variable estimation strategy
+
+Instrumental variable estimation is used in this study, as even when foscusing on the subsample of juveniles that were convicted and put on probabtion, vs those that were convicted and detained (followed by probation), observable characteristics differed which are correlated with the outcome. Hence, the outcome (high school completion / adult recidivsm) is not independent of being assigned to treatment (juvenile incarceration). Even after including numerous controls and applying propensity score matching, there may still be unobservable factors regarding the crime and individual which may influence the outcome and are correlated with the probability of being incarcerated. 
+
+##### Regarding the suitability of IV: 
+Given that the sample is restricted to individuals which go before court, meaning they have been pre-processed by the criminal system and the charge was deemed to be severe enough to go before court, a lot of the variation in D will likely be explained by the variation in the instrument (judge's propensity to deliver a detention sentence). In a way, the study measures the local average treatment effect of juveniles that go before a judge rather than the average treatment effect of juveniles that are arrested and enter the criminal system. 
+
+##### Regarding the necessary order and rank conditions for an IV estimation:
+The order condition is met due to the fact that this study uses one endogenous explanatory variable. The rank condition is met given the fact that the coefficient on the instrument is significant in the first stage regression. 
+
+##### Regarding Relevance of instrument:
+While the coefficient on the first stage regression is highly significant, an R2 value or F statistic is not provided in the results section. It is therefore unclear whether the instrument is weak and thus may be biasing results. 
+
+
+##### Regarding exogeniety of instrument:
+A Hansen J-Statistic was not calculated, as only one instrument was available to the researchers in this study. To address any concerns regarding exogeniety, (convincing ) qualitative evidence was gathered. In addition, the authors check the distribution of observable characteristics conditional on the judge's propensity to sentence a juvenile. They find that there are no significant differences when comparing the different cells, lending evidence to the random assignement of judges to cases. 
+
+##### Concluding remarks
+All in all, this research provides a convincing picture of the effect of juvenile incarceration on the acquisition of human capital. The IV estimation procedure appears adequate, especially given the random assignment of judges to cases and given the fact that cases are restricted to juveniles that went through several stages of the criminal justice system before appearing before court (increasing the probability that a judge's propensity to incarcerate correlates strongly with actual incarceration). Rank and order condition are met and the exogeniety of the instrument seems plausible. 
+
+However, there is little evidence besides signficance of the instrument on whether the instrument is weak or strong. In addition,  a factor which is hard to measure but may be related to both outcome as well as the instrument may be composure and temprament of the person before the judge. Not controlling for this may lead to an invalid instrument. Finally,  the length of incarceration is not controlled for. Authors assert that typically, juveniles are sent to detention for 1-2 months. However, potential issues around implications remain. On the one hand, an effect on high school drop out could thus be driven by time away from school rather than being incarcerated. On the other hand, it is likely that the length of incarceration will have a significant effect on the outcome (high school completition and adult recidivism). 
