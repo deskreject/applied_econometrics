@@ -441,10 +441,114 @@ summary {
 </div>
 
 
+<div id="question-1" class="section level2">
+<h2>Question 1</h2>
+<p>Assume the following two structural equations:</p>
+<p>y = β0 + β1x + u (1.1) x = γ0 + γ1z + v (1.2)</p>
+<p>Further assume the following (hypothetical) info: (1) corr(x,y)=0.50, (2) corr(z,y)=¼corr(z,x), (3) Var(y)=9, and (4) Var(x)= 16.</p>
+<p>Required: a. Calculate the OLS estimator of β1. b. Calculate the IV estimator of β1.</p>
+<div id="answer-1" class="section level3">
+<h3>Answer 1</h3>
+<p>To estimate the OLS coefficient of beta 1 I need to scale the covariance of x and y by the variance in x. To receive the covariance, I will multiply the correlation by the product of the standard deviation of x and the standard deviation of y</p>
+<pre class="r"><code>covariance &lt;- 0.5*(sqrt(9) * sqrt(16))
+
+covariance/16</code></pre>
+<pre><code>## [1] 0.375</code></pre>
+<p>the OLS estimator of Beta 1 is,as above, 0.375</p>
+<p>to get the IV estimator of beta 1, i need to scale the covariance of the instrument and the outcome by the covariance of the instrument and the treatment (x)</p>
+<pre class="r"><code>0.25/1</code></pre>
+<pre><code>## [1] 0.25</code></pre>
+<p>the IV estimator of beta 1 is, as above, 0.25</p>
+</div>
+</div>
+<div id="question-2" class="section level2">
+<h2>Question 2</h2>
+<p>Use the data in the file MROZ. Consider labor supply for married women already in the workforce. In place of the demand function, we write the wage offer as a function of hours and the “usual” productivity variables. With the equilibrium condition imposed, the two structural equations are</p>
+<p>hours = β0 + β1log(wage) + β2educ + β3age + β4kidslt6 + β5nwifeinc + u1 (4.1)</p>
+<p>log(wage) = γ0 + γ1hours + γ2educ + γ3exper + γ4exper2 + u2 (4.2)</p>
+<p>where age is the woman’s age, kidslt6 is the number of kids less than 6 years old, nwifeinc is the woman’s nonwage income.</p>
+<p>Required: * a. Estimate equations (4.1) and (4.2) using OLS. * b. Under what conditions are both equations (4.1) and (4.2) identified? * c. Determine the appropriateness (relevance and exogeneity) of the instruments (be as complete as possible). * d. Estimate equations (4.1) and (4.2) using 2SLS. * e. Determine the endogeneity of log(wage) in equation (4.1). * f. Discuss the results of the different estimations.</p>
+<div id="answer-3" class="section level3">
+<h3>Answer 3</h3>
+<div id="a" class="section level4">
+<h4>3a)</h4>
+<p>Below I estimate the OLS regressions of the equations 4.1 and 4.2</p>
+<pre class="r"><code># Necessary package
+library(readxl)
+library(tidyverse)</code></pre>
+<pre><code>## -- Attaching packages ---------------------------------------------------------------------------------------- tidyverse 1.3.0 --</code></pre>
+<pre><code>## v ggplot2 3.3.1     v purrr   0.3.4
+## v tibble  3.0.1     v dplyr   1.0.0
+## v tidyr   1.1.0     v stringr 1.4.0
+## v readr   1.3.1     v forcats 0.5.0</code></pre>
+<pre><code>## -- Conflicts ------------------------------------------------------------------------------------------- tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>df_MROZ &lt;- read_excel(&quot;C:/R work/applied econometrics/applied_econometrics/Data/MROZ.xlsx&quot;, 
+                     sheet = 1)
+
+#OLS 4.1
+summary(lm(hours ~ log(wage+0.1) + educ + age + kidslt6 + nwifeinc, data = df_MROZ))</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = hours ~ log(wage + 0.1) + educ + age + kidslt6 + 
+##     nwifeinc, data = df_MROZ)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1863.8  -194.6   -57.3   282.3  4493.5 
+## 
+## Coefficients:
+##                 Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)     1309.446    190.236   6.883 1.24e-11 ***
+## log(wage + 0.1)  334.271     13.311  25.113  &lt; 2e-16 ***
+## educ             -20.684     10.775  -1.920  0.05528 .  
+## age               -2.726      3.116  -0.875  0.38183    
+## kidslt6         -133.285     49.226  -2.708  0.00693 ** 
+## nwifeinc          -3.411      2.024  -1.686  0.09227 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 609 on 747 degrees of freedom
+## Multiple R-squared:  0.5148, Adjusted R-squared:  0.5115 
+## F-statistic: 158.5 on 5 and 747 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>#OLS 4.2
+summary(lm(log(wage+0.1)~ hours + educ + exper + I(exper^2), data = df_MROZ))</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = log(wage + 0.1) ~ hours + educ + exper + I(exper^2), 
+##     data = df_MROZ)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -6.9318 -0.8761 -0.3003  0.8106  4.7775 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -3.421e+00  2.535e-01 -13.491  &lt; 2e-16 ***
+## hours        1.347e-03  5.708e-05  23.596  &lt; 2e-16 ***
+## educ         1.376e-01  1.991e-02   6.913 1.02e-11 ***
+## exper        6.890e-02  1.675e-02   4.114 4.32e-05 ***
+## I(exper^2)  -1.656e-03  5.252e-04  -3.152  0.00169 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 1.232 on 748 degrees of freedom
+## Multiple R-squared:  0.5472, Adjusted R-squared:  0.5448 
+## F-statistic:   226 on 4 and 748 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>as seen above, all included covariates are significant at least at the 0.9 level, where hours worked positively affect the wage of women and wage positively influences the hours worked</p>
+</div>
+<div id="b" class="section level4">
+<h4>3b)</h4>
+</div>
+</div>
+</div>
+<div id="check-httpswww.youtube.comwatchvwcxqzp4iryi" class="section level1">
+<h1>check : <a href="https://www.youtube.com/watch?v=WcXQzp4IRyI" class="uri">https://www.youtube.com/watch?v=WcXQzp4IRyI</a></h1>
 <div id="question-3" class="section level2">
 <h2>Question 3</h2>
 <p>Find a published paper in your field of interest that uses an Instrumental Variables approach. Evaluate the quality of the instrument(s) used, as well as the substantiation by the author(s).</p>
-<div id="answer-3" class="section level3">
+<div id="answer-3-1" class="section level3">
 <h3>Answer 3</h3>
 <p>For this assignment I will analyze the instrumental variable estimation strategy by Aizer and Doyle in the article <a href="https://academic.oup.com/qje/article-abstract/130/2/759/2330376" title="Juvenile Incarceration, Human Capital, and Future Crime: Evidence from Randomly Assigned Judges">“Juvenile Incarceration, Human Capital, and Future Crime: Evidence from Randomly Assigned Judges”</a>, published in The Quarterly Journal of Economics in 2015.</p>
 <p>Herein, the effect of juvenile incarceration on the later acquisition of human capital (in the form of high school completition rate and adult recidivism) is investigated, using data from the Chicago justice system. Judge assignment which vary in their sentencing length and are randomly assigned, is used as an instrumental variable. The analysis finds that juvenile incarceration has a significant negative (positive) effect on later highschool completion (adult recidivism). Furthermore, the effect was found to be especially pronounced on individuals incarcerated when observable characteristics suggested a low likelihood of incarceration as well as for juveniles incarcerated at a critical age for high school completion (15-16).</p>
@@ -472,6 +576,7 @@ summary {
 <h5>Concluding remarks</h5>
 <p>All in all, this research provides a convincing picture of the effect of juvenile incarceration on the acquisition of human capital. The IV estimation procedure appears adequate, especially given the random assignment of judges to cases and given the fact that cases are restricted to juveniles that went through several stages of the criminal justice system before appearing before court (increasing the probability that a judge’s propensity to incarcerate correlates strongly with actual incarceration). Rank and order condition are met and the exogeniety of the instrument seems plausible.</p>
 <p>However, there is little evidence besides signficance of the instrument on whether the instrument is weak or strong. In addition, a factor which is hard to measure but may be related to both outcome as well as the instrument may be composure and temprament of the person before the judge. Not controlling for this may lead to an invalid instrument. Finally, the length of incarceration is not controlled for. Authors assert that typically, juveniles are sent to detention for 1-2 months. However, potential issues around implications remain. On the one hand, an effect on high school drop out could thus be driven by time away from school rather than being incarcerated. On the other hand, it is likely that the length of incarceration will have a significant effect on the outcome (high school completition and adult recidivism).</p>
+</div>
 </div>
 </div>
 </div>

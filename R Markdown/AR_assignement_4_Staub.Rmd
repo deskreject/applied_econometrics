@@ -8,6 +8,81 @@ output:
     includes:
       after_body: footer.html
 ---
+## Question 1
+Assume the following two structural equations:
+
+y = β0 + β1x + u (1.1)
+x = γ0 + γ1z + v (1.2)
+
+Further assume the following (hypothetical) info: (1) corr(x,y)=0.50, (2) corr(z,y)=¼corr(z,x), (3) Var(y)=9, and (4) Var(x)= 16.
+
+Required:
+a. Calculate the OLS estimator of β1.
+b. Calculate the IV estimator of β1.
+
+### Answer 1
+
+To estimate the OLS coefficient of beta 1 I need to scale the covariance of x and y by the variance in x. To receive the covariance, I will multiply the correlation by the product of the standard deviation of x and the standard deviation of y
+
+```{r}
+covariance <- 0.5*(sqrt(9) * sqrt(16))
+
+covariance/16
+```
+
+the OLS estimator of Beta 1 is,as above, 0.375
+
+to get the IV estimator of beta 1, i need to scale the covariance of the instrument and the outcome by the covariance of the instrument and the treatment (x)
+
+```{r}
+0.25/1
+```
+
+the IV estimator of beta 1 is, as above, 0.25
+
+## Question 2
+
+Use the data in the file MROZ. Consider labor supply for married women already in the workforce. In place of the demand function, we write the wage offer as a function of hours and the “usual” productivity variables. With the equilibrium condition imposed, the two structural equations are
+
+hours = β0 + β1log(wage) + β2educ + β3age + β4kidslt6 + β5nwifeinc + u1 (4.1)
+
+log(wage) = γ0 + γ1hours + γ2educ + γ3exper + γ4exper2 + u2 (4.2)
+
+where age is the woman’s age, kidslt6 is the number of kids less than 6 years old, nwifeinc is the woman’s nonwage income.
+
+Required:
+*  a. Estimate equations (4.1) and (4.2) using OLS.
+*  b. Under what conditions are both equations (4.1) and (4.2) identified?
+*  c. Determine the appropriateness (relevance and exogeneity) of the instruments (be as complete as possible).
+*  d. Estimate equations (4.1) and (4.2) using 2SLS.
+*  e. Determine the endogeneity of log(wage) in equation (4.1).
+*  f. Discuss the results of the different estimations.
+
+### Answer 3
+
+#### 3a)
+
+Below I estimate the OLS regressions of the equations 4.1 and 4.2
+
+```{r}
+# Necessary package
+library(readxl)
+library(tidyverse)
+
+df_MROZ <- read_excel("C:/R work/applied econometrics/applied_econometrics/Data/MROZ.xlsx", 
+                     sheet = 1)
+
+#OLS 4.1
+summary(lm(hours ~ log(wage+0.1) + educ + age + kidslt6 + nwifeinc, data = df_MROZ))
+#OLS 4.2
+summary(lm(log(wage+0.1)~ hours + educ + exper + I(exper^2), data = df_MROZ))
+```
+
+as seen above, all included covariates are significant at least at the 0.9 level, where hours worked positively affect the wage of women and wage positively influences the hours worked
+
+#### 3b)
+# check : https://www.youtube.com/watch?v=WcXQzp4IRyI
+
 ## Question 3
 Find a published paper in your field of interest that uses an Instrumental Variables approach. Evaluate the quality of the instrument(s) used, as well as the substantiation by the author(s).
 
